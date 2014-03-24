@@ -8,7 +8,9 @@ cj(document).ajaxComplete(function( event, xhr, settings ) {
 function CustomContactRelationshipsTabUtil() {
 
   this.start = function() {
-    this.getRelationshipRows();
+    var relationshipIds = this.getTableRowsRelationshipIds();
+    var relationshipIdsForRelationshipType = this.groupRelationshipIdsByRelationshipType(relationshipIds);
+    
   };
   
   this.relationshipTabIsLoaded = function() {
@@ -18,12 +20,30 @@ function CustomContactRelationshipsTabUtil() {
     }, 1);
   };
   
-  this.getRelationshipRows = function() {
-    var relationshipRows = cj('.row-relationship');
-    
-    cj.each(relationshipRows, function( index, relationshipRow ) {
+  this.getTableRowsRelationshipIds = function() {
+    var result = [];
+    cj.each(cj('.row-relationship'), function(index, relationshipRow) {
       var relationshipId = cj(relationshipRow).attr('id').substring('rel_'.length);
-      console.log(relationshipId);
+      result.push(relationshipId);
     });
+    
+    return result;
   };
+  
+  this.groupRelationshipIdsByRelationshipType = function(relationshipIds) {
+    var relationshipTypeForRelationshipId = CRM.customContactRelationshipsTab.relationshipTypeForRelationshipId;
+    var result = {};
+    
+    cj.each(relationshipIds, function(index, relationshipId) {
+      var relationshipTypeId = relationshipTypeForRelationshipId[relationshipId];
+      
+      if(result.hasOwnProperty(relationshipTypeId) === false) {
+        result[relationshipTypeId] = [];
+      }
+      
+      result[relationshipTypeId].push(relationshipId);
+    });
+    
+    return result;
+  }
 }

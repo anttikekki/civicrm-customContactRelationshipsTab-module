@@ -2,11 +2,11 @@
 
 class CustomContactRelationshipsTabUtil {
   
-  public static function getRelationshipIdsForContactId($contactId) {
+  public static function getRelationshipsForContactId($contactId) {
     $contactId = (int) $contactId;
   
     $sql = "
-      SELECT id
+      SELECT id, relationship_type_id
       FROM civicrm_relationship
       WHERE contact_id_a = $contactId 
          OR contact_id_b = $contactId
@@ -15,7 +15,7 @@ class CustomContactRelationshipsTabUtil {
     
     $result = array();
     while ($dao->fetch()) {
-      $result[] = $dao->id;
+      $result[$dao->id] = $dao->relationship_type_id;
     }
     
     return $result;

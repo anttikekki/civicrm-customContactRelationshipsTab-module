@@ -41,11 +41,19 @@ function customContactRelationshipsTab_civicrm_alterTemplateFile($formName, &$fo
     //Add relationship custom field values
     $customFieldValues = CustomContactRelationshipsTabUtil::getRelationshipTypeCustomFieldsValues();
     CRM_Core_Resources::singleton()->addSetting(array('customContactRelationshipsTab' => array('customFieldValues' => $customFieldValues)));
+    echo "<br>customFieldValues: ";
     print_r($customFieldValues);
     
     //Add visible custom field configs
     $visibleCustomFieldsConfig = CustomContactRelationshipsTabUtil::getRelationshipVisibleCustomFieldsFromConfig();
     CRM_Core_Resources::singleton()->addSetting(array('customContactRelationshipsTab' => array('visibleCustomFieldsConfig' => $visibleCustomFieldsConfig)));
+    echo "<br>visibleCustomFieldsConfig: ";
     print_r($visibleCustomFieldsConfig);
+    
+    //Add Contact relationships
+    $relationshipTypeForRelationshipId = CustomContactRelationshipsTabUtil::getRelationshipsForContactId($contactId);
+    CRM_Core_Resources::singleton()->addSetting(array('customContactRelationshipsTab' => array('relationshipTypeForRelationshipId' => $relationshipTypeForRelationshipId)));
+    echo "<br>contactRelationships: ";
+    print_r($contactRelationships);
   }
 }
