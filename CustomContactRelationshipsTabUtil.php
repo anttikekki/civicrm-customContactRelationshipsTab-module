@@ -42,9 +42,10 @@ class CustomContactRelationshipsTabUtil {
   
   public static function getRelationshipVisibleCustomFieldsFromConfig() {
     $sql = "
-      SELECT relationship_type_id, custom_field_label, display_order
-      FROM civicrm_customContactRelationshipsTab_config
-      ORDER BY relationship_type_id ASC, display_order ASC
+      SELECT config.relationship_type_id, config.custom_field_id, civicrm_custom_field.label, config.display_order
+      FROM civicrm_customContactRelationshipsTab_config AS config
+      LEFT JOIN civicrm_custom_field ON (civicrm_custom_field.id = config.custom_field_id)
+      ORDER BY config.relationship_type_id ASC, config.display_order ASC
     ";
     $dao = CRM_Core_DAO::executeQuery($sql);
     
@@ -52,7 +53,8 @@ class CustomContactRelationshipsTabUtil {
     while ($dao->fetch()) {
       $row = array();
       $row["relationship_type_id"] = $dao->relationship_type_id;
-      $row["custom_field_label"] = $dao->custom_field_label;
+      $row["custom_field_id"] = $dao->custom_field_id;
+      $row["custom_field_label"] = $dao->label;
       $row["display_order"] = $dao->display_order;
       $result[] = $row;
     }
@@ -68,7 +70,8 @@ class CustomContactRelationshipsTabUtil {
     foreach ($customGroups as $index => &$customGroup) {
       $customGroupId = (int) $customGroup["id"];
       $relationshipTypeId = $customGroup["relationship_type_id"];
-      $result[$relationshipTypeId] = static::getCustomFieldsValuesForCustomGroup($customGroup, $customFields[$customGroupId]);
+      $key = "relationshipTypeId_$relationshipTypeId";
+      $result[$key] = static::getCustomFieldsValuesForCustomGroup($customGroup, $customFields[$customGroupId]);
     }
     
     return $result;
@@ -87,7 +90,8 @@ class CustomContactRelationshipsTabUtil {
       $row = array();
       $row["id"] = $dao->id;
       $row["title"] = $dao->title;
-      $row["relationship_type_id"] = $dao->extends_entity_column_value;
+      //WTF!!! extends_entity_column_value contains SOH control character!
+      $row["relationship_type_id"] = preg_replace('/[\x00-\x1F\x7F]/', '', $dao->extends_entity_column_value);
       $row["table_name"] = $dao->table_name;
       $result[$dao->id] = $row;
     }
@@ -131,6 +135,7 @@ class CustomContactRelationshipsTabUtil {
   
   public static function getCustomFieldsValuesForCustomGroup($customGroup, $customGroupFields) {
     $selectColumns = static::getCustomFieldTableSelectColumns($customGroupFields);
+    $customFieldIdForColumnNameMap = static::getCustomFieldIdForColumnNameMap($customGroupFields);
   
     $sql = "
       SELECT entity_id, ". implode(",", $selectColumns) ."
@@ -144,20 +149,27 @@ class CustomContactRelationshipsTabUtil {
       $row = array();
       $row["relationship_id"] = $dao->entity_id;
       foreach ($selectColumns as $index => $selectColumn) {
-        $row[$selectColumn] = $dao->{$selectColumn};
+        $customFieldId = $customFieldIdForColumnNameMap[$selectColumn];
+        $row[$customFieldId] = $dao->{$selectColumn};
       }
-      $result[$dao->entity_id] = $row;
+      $result["relationshipId_".$dao->entity_id] = $row;
     }
     
     return $result;
   }
   
-  
-  
   public static function getCustomFieldTableSelectColumns($customGroupFields) {
     $result = array();
     foreach ($customGroupFields as $index => &$customGroupField) {
       $result[] = $customGroupField["column_name"];
+    }
+    return $result;
+  }
+  
+  public static function getCustomFieldIdForColumnNameMap($customGroupFields) {
+    $result = array();
+    foreach ($customGroupFields as $index => &$customGroupField) {
+      $result[$customGroupField["column_name"]] = $customGroupField["id"];
     }
     return $result;
   }
