@@ -82,7 +82,10 @@ function CustomContactRelationshipsTabUtil() {
       }
       
       result[relationshipTypeId].push(relationshipId);
-      relationshipTypeIds.push(relationshipTypeId);
+      
+      if(relationshipTypeIds.indexOf(relationshipTypeId) === -1) {
+        relationshipTypeIds.push(relationshipTypeId);
+      }
     });
     
     result.relationshipTypeIds = relationshipTypeIds;
@@ -145,9 +148,9 @@ function CustomContactRelationshipsTabUtil() {
       
       //Add custom data columns
       var customFieldConfigs = util.getVisibleCustomFieldsConfigForRelationshipTypeId(relationshipTypeId);
-      var customValues = util.getCustomFieldValuesForRelationshipTypeId(relationshipTypeId);
+      var customValuesForRelationshipType = util.getCustomFieldValuesForRelationshipTypeId(relationshipTypeId);
       cj.each(customFieldConfigs, function(index, customFieldConfig) {
-        html += '<td>' + customValues['relationshipId_'+relationshipId][customFieldConfig.custom_field_id] + '</td>';
+        html += '<td>' + util.getCustomFieldValue(customValuesForRelationshipType, relationshipId, customFieldConfig) + '</td>';
       });
       
       //Add edit links column
@@ -158,6 +161,20 @@ function CustomContactRelationshipsTabUtil() {
     
     html += '</tbody>';
     return html;
+  };
+  
+  this.getCustomFieldValue = function(customValuesForRelationshipType, relationshipId, customFieldConfig) {
+    if(customValuesForRelationshipType == null) {
+      return '';
+    }
+    
+    var relationshipKey = 'relationshipId_'+relationshipId;
+    if(customValuesForRelationshipType.hasOwnProperty(relationshipKey) === false) {
+      return '';
+    }
+    
+    var relationshipCustomValues = customValuesForRelationshipType[relationshipKey];
+    return relationshipCustomValues[customFieldConfig.custom_field_id];
   };
   
   this.insertDatatable = function(tableHtml, relationshipTypeId) {
