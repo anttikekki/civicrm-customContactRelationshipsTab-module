@@ -2,7 +2,18 @@
 
 require_once "CustomContactRelationshipsTabUtil.php";
 
+/**
+* Ajax request listener for Contact Relationship tab to return Custom field values for relationship.
+* This listener URL is civicrm/ajax/customContactRelationshipsTabAjaxPage. This is configured in menu.xml.
+*/
 class CustomContactRelationshipsTabAjaxPage {
+
+  /**
+  * Returns Custom values for all contact relationships. Also returns this extension configurations table content.
+  * Prints JSON-response and terminates CiviCRM. Requires "contactId" GET parameter.
+  *
+  * Printed JSON object contains following fields: relationshipTypeForRelationshipId, customFieldValues, visibleCustomFieldsConfig, relationshipTypeIds and relationshipTypeNameForId.
+  */
   public static function getData() {
     $contactId = (int) $_GET["contactId"];
     $result = [];
