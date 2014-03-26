@@ -25,7 +25,7 @@ class CustomContactRelationshipsTabUtil {
     $contactId = (int) $contactId;
   
     $sql = "
-      SELECT relationship_type_id
+      SELECT UNIQUE relationship_type_id
       FROM civicrm_relationship
       WHERE contact_id_a = $contactId 
          OR contact_id_b = $contactId
@@ -36,13 +36,27 @@ class CustomContactRelationshipsTabUtil {
     while ($dao->fetch()) {
       $result[] = $dao->relationship_type_id;
     }
+    return $result;
+  }
+  
+  public static function getRelationshipTypes($relationshipTypeIds) {
+    $sql = "
+      SELECT id, label_a_b
+      FROM civicrm_relationship_type
+      WHERE id IN(". implode(",", $relationshipTypeIds) .")
+    ";
+    $dao = CRM_Core_DAO::executeQuery($sql);
     
+    $result = array();
+    while ($dao->fetch()) {
+      $result[$dao->id] = $dao->label_a_b;
+    }
     return $result;
   }
   
   public static function getRelationshipVisibleCustomFieldsFromConfig() {
     $sql = "
-      SELECT config.relationship_type_id, config.custom_field_id, civicrm_custom_field.label, config.display_order
+      SELECT config.relationship_type_id, config.custom_field_id, civicrm_custom_field.label, civicrm_custom_field.data_type, config.display_order
       FROM civicrm_customContactRelationshipsTab_config AS config
       LEFT JOIN civicrm_custom_field ON (civicrm_custom_field.id = config.custom_field_id)
       ORDER BY config.relationship_type_id ASC, config.display_order ASC
@@ -55,6 +69,7 @@ class CustomContactRelationshipsTabUtil {
       $row["relationship_type_id"] = $dao->relationship_type_id;
       $row["custom_field_id"] = $dao->custom_field_id;
       $row["custom_field_label"] = $dao->label;
+      $row["custom_field_data_type"] = $dao->data_type;
       $row["display_order"] = $dao->display_order;
       $result[] = $row;
     }
@@ -62,7 +77,7 @@ class CustomContactRelationshipsTabUtil {
     return $result;
   }
   
-  public static function getRelationshipTypeCustomFieldsValues() {
+  public static function getRelationshipTypeCustomFieldsValues($relationshipIds) {
     $customGroups = static::getCustomGroupsForRelationshipTypes();
     $customFields = static::getCustomFieldsForCustomGroups($customGroups);
     
@@ -71,7 +86,7 @@ class CustomContactRelationshipsTabUtil {
       $customGroupId = (int) $customGroup["id"];
       $relationshipTypeId = $customGroup["relationship_type_id"];
       $key = "relationshipTypeId_$relationshipTypeId";
-      $result[$key] = static::getCustomFieldsValuesForCustomGroup($customGroup, $customFields[$customGroupId]);
+      $result[$key] = static::getCustomFieldsValuesForCustomGroup($customGroup, $customFields[$customGroupId], $relationshipIds);
     }
     
     return $result;
@@ -133,13 +148,18 @@ class CustomContactRelationshipsTabUtil {
     return $result;
   }
   
-  public static function getCustomFieldsValuesForCustomGroup($customGroup, $customGroupFields) {
+  public static function getCustomFieldsValuesForCustomGroup($customGroup, $customGroupFields, $relationshipIds) {
     $selectColumns = static::getCustomFieldTableSelectColumns($customGroupFields);
     $customFieldIdForColumnNameMap = static::getCustomFieldIdForColumnNameMap($customGroupFields);
+  
+    if(count($selectColumns) == 0 || count($relationshipIds) == 0) {
+      return array();
+    }
   
     $sql = "
       SELECT entity_id, ". implode(",", $selectColumns) ."
       FROM ".$customGroup["table_name"]."
+      WHERE entity_id IN(". implode(",", $relationshipIds) .")
     ";
     $dao = CRM_Core_DAO::executeQuery($sql);
     

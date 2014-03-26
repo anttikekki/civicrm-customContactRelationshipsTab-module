@@ -1,9 +1,18 @@
-cj(document).ajaxComplete(function( event, xhr, settings ) {
-  if(settings.url.indexOf('civicrm/contact/view/rel') !== -1) {
+if(document.URL.indexOf('civicrm/contact/view/rel') !== -1) {
+  cj(function ($) {
     var util = new CustomContactRelationshipsTabUtil();
-    util.relationshipTabIsLoaded();
-  }
-});
+    util.hideOriginalDatatables();
+    util.loadExtensionData();
+  });
+}
+else if(document.URL.indexOf('civicrm/contact/view') !== -1) {
+  cj(document).ajaxComplete(function( event, xhr, settings ) {
+    if(settings.url.indexOf('civicrm/contact/view/rel') !== -1) {
+      var util = new CustomContactRelationshipsTabUtil();
+      util.relationshipTabIsLoaded();
+    }
+  });
+}
 
 function CustomContactRelationshipsTabUtil() {
 
@@ -26,13 +35,16 @@ function CustomContactRelationshipsTabUtil() {
     var relationshipIds = this.getTableRowsRelationshipIds();
     var relationshipIdsForRelationshipType = this.groupRelationshipIdsByRelationshipType(relationshipIds);
     this.buildNewDatatablesForRelationshipTypes(relationshipIdsForRelationshipType);
+    
+    //Move info label to bottom
+    cj('#current-relationships').parent().append(cj('#permission-legend'));
+    cj('#permission-legend').show();
   };
   
   this.loadExtensionData = function() {
     var util = this;
     var contactId = this.getParameterFromURL('cid');
     cj.get( "index.php?q=civicrm/ajax/customContactRelationshipsTabAjaxPage&contactId="+contactId, function( data ) {
-      console.log(data);
       util.extensionData = JSON.parse(data);
       util.start();
     });
@@ -41,8 +53,14 @@ function CustomContactRelationshipsTabUtil() {
   this.relationshipTabIsLoaded = function() {
     var util = this;
     setTimeout(function() {
+      util.hideOriginalDatatables();
       util.loadExtensionData();
     }, 1);
+  };
+  
+  this.hideOriginalDatatables = function() {
+    cj('#current-relationships, #inactive-relationships').hide();
+    cj('#permission-legend').hide();
   };
   
   this.getVisibleCustomFieldsConfigForRelationshipTypeId = function(relationshipTypeId) {
@@ -61,7 +79,7 @@ function CustomContactRelationshipsTabUtil() {
   
   this.getTableRowsRelationshipIds = function() {
     var result = [];
-    cj.each(cj('.row-relationship'), function(index, relationshipRow) {
+    cj.each(cj('.dataTables_wrapper tbody tr'), function(index, relationshipRow) {
       var relationshipId = cj(relationshipRow).attr('id').substring('rel_'.length);
       result.push(relationshipId);
     });
@@ -102,7 +120,7 @@ function CustomContactRelationshipsTabUtil() {
   };
   
   this.buildNewDatatable = function(relationshipIds, relationshipTypeId) {
-    var html = '<table class="display">';
+    var html = '<table id="datatable_relationshipTypeId_' + relationshipTypeId + '" class="display">';
     html += this.createDatatableHeader(relationshipTypeId);
     html += this.createDatatableRows(relationshipIds, relationshipTypeId);
     html += '</table>';
@@ -114,15 +132,15 @@ function CustomContactRelationshipsTabUtil() {
     var html = '<thead>';
     
     //Add defaul columns
-    html += '<th class="sorting" rowspan="1" colspan="1">' + defaultHeaderName.relationshipColumn + '</th>';
-    html += '<th class="sorting_disabled" rowspan="1" colspan="1"></th>'; //Contact name
-    html += '<th class="sorting" rowspan="1" colspan="1">' + defaultHeaderName.startColumn + '</th>';
-    html += '<th class="sorting" rowspan="1" colspan="1">' + defaultHeaderName.endColumn + '</th>';
+    html += '<th>' + defaultHeaderName.relationshipColumn + '</th>';
+    html += '<th></th>'; //Contact name
+    html += '<th>' + defaultHeaderName.startColumn + '</th>';
+    html += '<th>' + defaultHeaderName.endColumn + '</th>';
     
     //Add custom data columns
     var customFieldConfigs = this.getVisibleCustomFieldsConfigForRelationshipTypeId(relationshipTypeId);
     cj.each(customFieldConfigs, function(index, customFieldConfig) {
-      html += '<th class="sorting" rowspan="1" colspan="1">' + customFieldConfig.custom_field_label + '</th>';
+      html += '<th>' + customFieldConfig.custom_field_label + '</th>';
     });
     
     //Add edit links column
@@ -174,18 +192,29 @@ function CustomContactRelationshipsTabUtil() {
     }
     
     var relationshipCustomValues = customValuesForRelationshipType[relationshipKey];
-    return relationshipCustomValues[customFieldConfig.custom_field_id];
+    var value = relationshipCustomValues[customFieldConfig.custom_field_id];
+    
+    if(customFieldConfig.custom_field_data_type == 'Boolean') {
+      value = value == '1' ? 'True' : 'False';
+    }
+    
+    return value;
   };
   
   this.insertDatatable = function(tableHtml, relationshipTypeId) {
     var html = '<div>';
-    html += '<h3>Otsikko</h3>';
+    html += '<h3>' + this.extensionData['relationshipTypeNameForId'][relationshipTypeId] + '</h3>';
     html += '<div class="dataTables_wrapper">';
     html += tableHtml;
     html += '</div>';
     html += '</div>';
     
-    cj('#Relationships .crm-block').append(html);
+    cj('#current-relationships').parent().append('<div class="spacer"></div>').append(html);
+    cj('#datatable_relationshipTypeId_' + relationshipTypeId).dataTable({
+        "bPaginate": false,
+        "bFilter": false,
+        "bInfo": false
+    });
   };
   
   this.getRelationshipRowRelationshipNameLink = function(relationshipId) {
@@ -197,11 +226,11 @@ function CustomContactRelationshipsTabUtil() {
   };
   
   this.getRelationshipRowStartDate = function(relationshipId) {
-    return cj('#rel_' + relationshipId).find('.crm-rel-start_date').html();
+    return cj('#rel_' + relationshipId).find('td:nth-child(3)').html();
   };
   
   this.getRelationshipRowEndDate = function(relationshipId) {
-    return cj('#rel_' + relationshipId).find('.crm-rel-end_date').html();
+    return cj('#rel_' + relationshipId).find('td:nth-child(4)').html();
   };
   
   this.getRelationshipRowEditLinks = function(relationshipId) {

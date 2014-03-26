@@ -4,9 +4,6 @@
 * Custom Contact Relationships Tab hooks.
 */
 
-require_once "CustomContactRelationshipsTabUtil.php";
-require_once "CustomContactRelationshipsTabAjaxPage.php";
-
 /**
 * Implements CiviCRM 'install' hook.
 */
@@ -35,6 +32,13 @@ function customContactRelationshipsTab_civicrm_alterTemplateFile($formName, &$fo
   //Contact summary main page
   if($form instanceof CRM_Contact_Page_View_Summary) {
     CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.customContactRelationshipsTab', 'customContactRelationshipsTab.js');
+  }
+  //Relationship tab and edit & view
+  else if($form instanceof CRM_Contact_Page_View_Relationship) {
+    $action = $form->getTemplate()->get_template_vars("action");
+    if($action == CRM_Core_Action::VIEW || $action == CRM_Core_Action::UPDATE) {
+      CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.customContactRelationshipsTab', 'customContactRelationshipsTab.js');
+    }
   }
 }
 
