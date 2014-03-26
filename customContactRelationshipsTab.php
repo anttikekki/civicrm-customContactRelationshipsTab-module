@@ -5,6 +5,7 @@
 */
 
 require_once "CustomContactRelationshipsTabUtil.php";
+require_once "CustomContactRelationshipsTabAjaxPage.php";
 
 /**
 * Implements CiviCRM 'install' hook.
@@ -14,9 +15,9 @@ function customContactRelationshipsTab_civicrm_install() {
   $sql = "
     CREATE TABLE IF NOT EXISTS civicrm_customContactRelationshipsTab_config (
       relationship_type_id int(10) NOT NULL,
-      custom_field_label varchar(255) NOT NULL,
+      custom_field_id int(10) NOT NULL,
       display_order int(10) NOT NULL,
-      PRIMARY KEY (relationship_type_id, custom_field_label)
+      PRIMARY KEY (relationship_type_id, custom_field_id)
     ) ENGINE=InnoDB;
   ";
   CRM_Core_DAO::executeQuery($sql);
@@ -34,26 +35,14 @@ function customContactRelationshipsTab_civicrm_alterTemplateFile($formName, &$fo
   //Contact summary main page
   if($form instanceof CRM_Contact_Page_View_Summary) {
     CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.customContactRelationshipsTab', 'customContactRelationshipsTab.js');
-    
-    
-    $contactId = (int) $form->getTemplate()->get_template_vars("contactId");
-    
-    //Add relationship custom field values
-    $customFieldValues = CustomContactRelationshipsTabUtil::getRelationshipTypeCustomFieldsValues();
-    CRM_Core_Resources::singleton()->addSetting(array('customContactRelationshipsTab' => array('customFieldValues' => $customFieldValues)));
-    echo "<br>customFieldValues: ";
-    print_r($customFieldValues);
-    
-    //Add visible custom field configs
-    $visibleCustomFieldsConfig = CustomContactRelationshipsTabUtil::getRelationshipVisibleCustomFieldsFromConfig();
-    CRM_Core_Resources::singleton()->addSetting(array('customContactRelationshipsTab' => array('visibleCustomFieldsConfig' => $visibleCustomFieldsConfig)));
-    echo "<br>visibleCustomFieldsConfig: ";
-    print_r($visibleCustomFieldsConfig);
-    
-    //Add Contact relationships
-    $relationshipTypeForRelationshipId = CustomContactRelationshipsTabUtil::getRelationshipsForContactId($contactId);
-    CRM_Core_Resources::singleton()->addSetting(array('customContactRelationshipsTab' => array('relationshipTypeForRelationshipId' => $relationshipTypeForRelationshipId)));
-    echo "<br>contactRelationships: ";
-    print_r($contactRelationships);
   }
+}
+
+function customContactRelationshipsTab_civicrm_config(&$config) {
+  $include_path = dirname(__FILE__) . DIRECTORY_SEPARATOR . PATH_SEPARATOR . get_include_path();
+  set_include_path($include_path);
+}
+
+function customContactRelationshipsTab_civicrm_xmlMenu( &$files ) {
+  $files[] = dirname(__FILE__)."/menu.xml";
 }

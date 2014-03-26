@@ -7,22 +7,47 @@ cj(document).ajaxComplete(function( event, xhr, settings ) {
 
 function CustomContactRelationshipsTabUtil() {
 
+  this.extensionData = null;
+  
+  /**
+  * Get parameter value from given URL?
+  *
+  * @param {string} parm Parameter that is searched from url.
+  * @return {string} Parameter value. Null if value is not found.
+  */
+  this.getParameterFromURL = function(parm) {
+    //Code from http://stackoverflow.com/a/10625052
+    var re = new RegExp("[?&]" + parm + "=([^&]+)(&|$)");
+    var match = document.URL.replace(/&amp;/g, '&').match(re);
+    return(match ? match[1] : null);
+  }
+
   this.start = function() {
     var relationshipIds = this.getTableRowsRelationshipIds();
     var relationshipIdsForRelationshipType = this.groupRelationshipIdsByRelationshipType(relationshipIds);
     this.buildNewDatatablesForRelationshipTypes(relationshipIdsForRelationshipType);
   };
   
+  this.loadExtensionData = function() {
+    var util = this;
+    var contactId = this.getParameterFromURL('cid');
+    cj.get( "index.php?q=civicrm/ajax/customContactRelationshipsTabAjaxPage&contactId="+contactId, function( data ) {
+      console.log(data);
+      util.extensionData = JSON.parse(data);
+      util.start();
+    });
+  };
+  
   this.relationshipTabIsLoaded = function() {
     var util = this;
     setTimeout(function() {
-      util.start()
+      util.loadExtensionData();
     }, 1);
   };
   
   this.getVisibleCustomFieldsConfigForRelationshipTypeId = function(relationshipTypeId) {
     var result = [];
-    cj.each(CRM.customContactRelationshipsTab.visibleCustomFieldsConfig, function(index, customFieldConfig) {
+    cj.each(this.extensionData.visibleCustomFieldsConfig, function(index, customFieldConfig) {
       if(customFieldConfig.relationship_type_id == relationshipTypeId) {
         result.push(customFieldConfig);
       }
@@ -31,7 +56,7 @@ function CustomContactRelationshipsTabUtil() {
   };
   
   this.getCustomFieldValuesForRelationshipTypeId = function(relationshipTypeId) {
-    return CRM.customContactRelationshipsTab.customFieldValues['relationshipTypeId_'+relationshipTypeId];
+    return this.extensionData.customFieldValues['relationshipTypeId_'+relationshipTypeId];
   };
   
   this.getTableRowsRelationshipIds = function() {
@@ -45,7 +70,7 @@ function CustomContactRelationshipsTabUtil() {
   };
   
   this.groupRelationshipIdsByRelationshipType = function(relationshipIds) {
-    var relationshipTypeForRelationshipId = CRM.customContactRelationshipsTab.relationshipTypeForRelationshipId;
+    var relationshipTypeForRelationshipId = this.extensionData.relationshipTypeForRelationshipId;
     var result = {};
     var relationshipTypeIds = [];
     

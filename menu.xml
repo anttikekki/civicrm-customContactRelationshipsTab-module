@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<menu>
+  <item>
+     <path>civicrm/ajax/customContactRelationshipsTabAjaxPage</path>
+     <page_callback>CustomContactRelationshipsTabAjaxPage::getData</page_callback>
+     <access_arguments>access CiviCRM</access_arguments>
+  </item>
+</menu>
