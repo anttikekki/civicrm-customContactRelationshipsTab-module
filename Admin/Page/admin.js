@@ -10,6 +10,7 @@ cj(function ($) {
   var customFieldsForCustomGroupId;
   var customFieldForId;
   var customFieldsArray;
+  var currentEdit = {};
   
   function init() {
     startInitDataAjaxLoading();
@@ -162,7 +163,7 @@ cj(function ($) {
   }
   
   function createConfigTable() {
-    var html = '<table>';
+    var html = '<table class="selector row-highlight">';
     
     //Table header
     html += '<thead>';
@@ -178,7 +179,7 @@ cj(function ($) {
     //Table body
     html += '<tbody>';
     $.each(configRows, function(index, configRow) {
-       html += createConfigTableRow(configRow);
+       html += createConfigTableRow(index, configRow);
     });
     html += '</tbody';
     
@@ -186,10 +187,11 @@ cj(function ($) {
     return html;
   }
   
-  function createConfigTableRow(configRow) {
+  function createConfigTableRow(index, configRow) {
     var customField = customFieldForId[configRow.custom_field_id];
   
-    var html = '<tr>';
+    var rowClass = index % 2 === 0 ? 'even-row' : 'odd-row';
+    var html = '<tr class="' + rowClass + '">';
     html += ' <td>' + relationshipTypeNameForId[configRow.relationship_type_id] + '</td>';
     html += ' <td>' + customGroupForId[customField.custom_group_id].title + '</td>';
     html += ' <td>' + customField.label + '</td>';
@@ -221,6 +223,9 @@ cj(function ($) {
     var custom_field_id = link.data().custom_field_id;
     var configRow = getConfigRow(relationship_type_id, custom_field_id);
     
+    currentEdit.old_relationship_type_id = relationship_type_id;
+    currentEdit.old_custom_field_id = custom_field_id;
+    
     $('#relationship_type_id').val(configRow.relationship_type_id);
     relationshipTypeChanged();
     $('#custom_group_id').val(configRow.custom_group_id);
@@ -249,6 +254,7 @@ cj(function ($) {
   }
   
   function addButtonClicked(eventObject) {
+    currentEdit = {};
     showEditForm();
   }
   
@@ -265,6 +271,7 @@ cj(function ($) {
     $('#customContactRelationshipsTabAdmin_editFormContainer').show();
     
     clearValidationErrors();
+    clearServerErrorMessage();
   }
   
   function hideEditForm() {
@@ -322,6 +329,7 @@ cj(function ($) {
   
   function saveConfigForm() {
     clearValidationErrors();
+    clearServerErrorMessage();
     
     var data = getFormData();
     var hasErrors = false;
@@ -349,9 +357,14 @@ cj(function ($) {
     $.ajax({
       url: 'index.php?q=civicrm/customContactRelationshipsTab/settings/ajax/saveConfigRow',
       data: data,
-      success: function() {
-        updateConfigTable();
-        hideEditForm();
+      success: function(result) {
+        if(result != 'ok') {
+          showServerErrorMessage(result);
+        }
+        else {
+          updateConfigTable();
+          hideEditForm();
+        }
       }
     });
   }
@@ -361,8 +374,18 @@ cj(function ($) {
       relationship_type_id: $('#relationship_type_id').val(),
       custom_group_id: $('#custom_group_id').val(),
       custom_field_id: $('#custom_field_id').val(),
-      display_order: $('#display_order').val()
+      display_order: $('#display_order').val(),
+      old_relationship_type_id: currentEdit.old_relationship_type_id,
+      old_custom_field_id: currentEdit.old_custom_field_id
     };
+  }
+  
+  function showServerErrorMessage(message) {
+    $('#customContactRelationshipsTabAdmin_editFormContainer .crm-submit-buttons').append('<label class="crm-inline-error">' + message + '</label>');
+  }
+  
+  function clearServerErrorMessage() {
+    $('#customContactRelationshipsTabAdmin_editFormContainer .crm-submit-buttons .crm-inline-error').remove();
   }
   
   function showValidationError(fieldId, message) {

@@ -32,9 +32,7 @@ class Admin_Page_CustomContactRelationshipsTabAdminAjax {
   }
   
   public static function saveConfigRow() {
-    CustomContactRelationshipsTabAdminDAO::saveConfigRow($_GET);
-    
-    echo "ok";
+    echo CustomContactRelationshipsTabAdminDAO::saveConfigRow($_GET);
     CRM_Utils_System::civiExit();
   }
   
