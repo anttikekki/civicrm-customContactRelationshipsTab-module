@@ -60,14 +60,21 @@ class CustomContactRelationshipsTabUtil {
   * @param array $relationshipTypeIds Relationship type ids
   * @return array Array where key is relationship type id and value is relationship type name
   */
-  public static function getRelationshipTypes($relationshipTypeIds) {
-    $relationshipTypeIds = array_filter($relationshipTypeIds, "is_numeric");
-    
+  public static function getRelationshipTypes($relationshipTypeIds = NULL) {
     $sql = "
       SELECT id, label_a_b
       FROM civicrm_relationship_type
-      WHERE id IN(". implode(",", $relationshipTypeIds) .")
     ";
+    
+    if(is_array($relationshipTypeIds)) {
+      if(count($relationshipTypeIds) == 0) {
+        return array();
+      }
+      $relationshipTypeIds = array_filter($relationshipTypeIds, "is_numeric");
+      
+      $sql .= "WHERE id IN(". implode(",", $relationshipTypeIds) .")";
+    }
+    
     $dao = CRM_Core_DAO::executeQuery($sql);
     
     $result = array();

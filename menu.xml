@@ -1,8 +1,34 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
 <menu>
   <item>
-     <path>civicrm/ajax/customContactRelationshipsTabAjaxPage</path>
-     <page_callback>CustomContactRelationshipsTabAjaxPage::getData</page_callback>
+     <path>civicrm/customContactRelationshipsTab/ajax</path>
+     <page_callback>CustomContactRelationshipsTabAjax::getData</page_callback>
      <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/customContactRelationshipsTab/settings</path>
+    <title>CustomContactRelationshipsTab Settings</title>
+    <page_callback>Admin_Page_CustomContactRelationshipsTabAdmin</page_callback>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/customContactRelationshipsTab/settings/ajax/getInitData</path>
+    <page_callback>Admin_Page_CustomContactRelationshipsTabAdminAjax::getInitData</page_callback>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/customContactRelationshipsTab/settings/ajax/getConfig</path>
+    <page_callback>Admin_Page_CustomContactRelationshipsTabAdminAjax::getConfig</page_callback>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/customContactRelationshipsTab/settings/ajax/saveConfigRow</path>
+    <page_callback>Admin_Page_CustomContactRelationshipsTabAdminAjax::saveConfigRow</page_callback>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/customContactRelationshipsTab/settings/ajax/deleteConfigRow</path>
+    <page_callback>Admin_Page_CustomContactRelationshipsTabAdminAjax::deleteConfigRow</page_callback>
+    <access_arguments>administer CiviCRM</access_arguments>
   </item>
 </menu>

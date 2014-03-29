@@ -69,7 +69,7 @@ function CustomContactRelationshipsTabUtil() {
   this.loadExtensionData = function() {
     var util = this;
     var contactId = this.getParameterFromURL('cid');
-    cj.get( "index.php?q=civicrm/ajax/customContactRelationshipsTabAjaxPage&contactId="+contactId, function( data ) {
+    cj.get( "index.php?q=civicrm/customContactRelationshipsTab/ajax&contactId="+contactId, function( data ) {
       util.extensionData = JSON.parse(data);
       util.start();
     });

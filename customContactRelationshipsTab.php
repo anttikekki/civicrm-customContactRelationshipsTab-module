@@ -51,6 +51,10 @@ function customContactRelationshipsTab_civicrm_alterTemplateFile($formName, &$fo
       CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.customContactRelationshipsTab', 'customContactRelationshipsTab.js');
     }
   }
+  //Extension admin page
+  else if($form instanceof Admin_Page_CustomContactRelationshipsTabAdmin) {
+    CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.customContactRelationshipsTab', 'Admin/Page/admin.js');
+  }
 }
 
 /**
@@ -59,16 +63,66 @@ function customContactRelationshipsTab_civicrm_alterTemplateFile($formName, &$fo
 * @param object $config the config object
 */
 function customContactRelationshipsTab_civicrm_config(&$config) {
-  //Add extension folder to included folders list so that CustomContactRelationshipsTabAjaxPage.php is found whe accessin it from URL
-  $include_path = dirname(__FILE__) . DIRECTORY_SEPARATOR . PATH_SEPARATOR . get_include_path();
+  $template =& CRM_Core_Smarty::singleton();
+  $extensionDir = dirname(__FILE__);
+ 
+  // Add our template directory to the Smarty templates path
+  if (is_array($template->template_dir)) {
+    array_unshift($template->template_dir, $extensionDir);
+  }
+  else {
+    $template->template_dir = array($extensionDir, $template->template_dir);
+  }
+
+  //Add extension folder to included folders list so that AJAX.php is found whe accessin it from URL
+  $include_path = $extensionDir . DIRECTORY_SEPARATOR . PATH_SEPARATOR . get_include_path();
   set_include_path($include_path);
 }
 
 /**
 * Implemets CiviCRM 'xmlMenu' hook.
 *
-* @param array $files the array for files used to build the menu. You can append or delete entries from this file. You can also override menu items defined by CiviCRM Core.
+* @param array $files the array for files used to build the menu. You can append or delete entries from this file. 
+* You can also override menu items defined by CiviCRM Core.
 */
 function customContactRelationshipsTab_civicrm_xmlMenu( &$files ) {
   $files[] = dirname(__FILE__)."/menu.xml";
+}
+
+/**
+* Implemets CiviCRM 'navigationMenu' hook.
+*
+* @param array $params the navigation menu array
+*/
+function customContactRelationshipsTab_civicrm_navigationMenu( &$params ) {
+    //  Get the maximum key of $params
+    $maxKey = ( max( array_keys($params) ) );
+ 
+    $params[$maxKey+1] = array (
+       'attributes' => array (
+          'label'      => 'CustomContactRelationshipsTab',
+          'name'       => 'CustomContactRelationshipsTab',
+          'url'        => null,
+          'permission' => null,
+          'operator'   => null,
+          'separator'  => null,
+          'parentID'   => null,
+          'navID'      => $maxKey+1,
+          'active'     => 1
+          ),
+       'child' =>  array (
+          '1' => array (
+            'attributes' => array (
+               'label'      => 'Settings',
+               'name'       => 'Settings',
+               'url'        => 'civicrm/customContactRelationshipsTab/settings',
+               'permission' => 'administer CiviCRM',
+               'operator'   => null,
+               'separator'  => 1,
+               'parentID'   => $maxKey+1,
+               'navID'      => 1,
+               'active'     => 1
+                ),
+            'child' => null
+            ) ) );
 }
