@@ -57,7 +57,7 @@ class Admin_Page_CustomContactRelationshipsTabAdminAjax {
   * Prints "ok" if delete was succesfull.
   * Listens URL civicrm/customContactRelationshipsTab/settings/ajax/deleteConfigRow.
   *
-  * Saved parameters are queried from $_GET.
+  * Delete parameters are queried from $_GET.
   */
   public static function deleteConfigRow() {
     CustomContactRelationshipsTabAdminDAO::deleteConfigRow($_GET);

@@ -1,6 +1,15 @@
+/**
+* CustomContactRelationshipTab extension admin screen logic. All HTML elements are created by this 
+* JavaScript file. All data is queried and saved to server with Ajax so browser page is not refressed.
+*/
 cj(function ($) {
   'use strict';
   
+  /*
+  * All variables that used to save data queried from server.
+  * All come from startInitDataAjaxLoading() Ajax call.
+  * configRows in reloaded every time when configurations rows are created, edited or deleted.
+  */
   var configRows;
   var customGroupForId;
   var customGroupsArray;
@@ -10,12 +19,25 @@ cj(function ($) {
   var customFieldsForCustomGroupId;
   var customFieldForId;
   var customFieldsArray;
+  
+  /*
+  * Holds information about current edited configuration row:
+  * old_relationship_type_id: original relationship tye before editing
+  * old_custom_field_id: original custom field id before editing
+  */
   var currentEdit = {};
   
+  /**
+  * Logic starting point. This is called when browser page is loaded.
+  */
   function init() {
     startInitDataAjaxLoading();
   }
   
+  /**
+  * Start loading admin page init data from server with ajax. 
+  * Calls initDataLoadComplete() when loading is complete.
+  */
   function startInitDataAjaxLoading() {
     $.ajax({
       dataType: "json",
@@ -24,11 +46,23 @@ cj(function ($) {
     });
   }
   
+  /**
+  * Called when admin page init data has been loaded.
+  * Saves init parameters and creates admin GUI controls.
+  *
+  * @param {object} result Ajax result
+  */
   function initDataLoadComplete(result) {
     initVariables(result);
     createGUI();
   }
   
+  /**
+  * Saves and reorders init data variables. Maps (objects) and arrays are created to ease 
+  * usage.
+  *
+  * @param {object} result Initdata loading Ajax result
+  */
   function initVariables(initData) {
     //Relationsh types
     relationshipTypeNameForId = initData.relationshipTypes;
@@ -67,6 +101,9 @@ cj(function ($) {
     configRows = initData.config;
   }
   
+  /**
+  * Creates admin GUI HTML controls and inits DOM event listeners.
+  */
   function createGUI() {
     var container = $('#customContactRelationshipsTabAdminContainer');
     
@@ -78,7 +115,7 @@ cj(function ($) {
     //Init form data
     populateRelationshipTypeSelect();
     
-    //Init listeners
+    //Init event listeners
     $('#addNewButton').on('click', addButtonClicked);
     $('#saveFormButton').on('click', saveFormButtonClicked);
     $('#cancelButton').on('click', cancelButtonClicked);
@@ -87,12 +124,21 @@ cj(function ($) {
     initTableEditLinkListeners();
   }
   
+  /**
+  * Init config rows table "Edit" and "Delete" click event listeners.
+  * These needs to be recreated every time when table is reloaded & recreated.
+  */
   function initTableEditLinkListeners() {
     var container = $('#customContactRelationshipsTabAdminContainer');
     container.find('.edit_link').on('click', configEditLinkClicked);
     container.find('.delete_link').on('click', configDeleteLinkClicked);
   }
   
+  /**
+  * Create "Add" button and container HTML.
+  *
+  * @return {string} HTML
+  */
   function createAddButton() {
     var html = '<div id="customContactRelationshipsTabAdmin_addButtonContainer">';
     html += '<a class="button" href="#" id="addNewButton"><span><div class="icon add-icon"></div>Add</span></a>';
@@ -100,6 +146,11 @@ cj(function ($) {
     return html;
   }
   
+  /**
+  * Create configuration row edit & creation form HTML. Does not populate select-elements.
+  *
+  * @return {string} HTML
+  */
   function createEditForm() {
     var html = '<div id="customContactRelationshipsTabAdmin_editFormContainer" class="crm-block crm-form-block" style="display: none;">';
     html += '<form>';
@@ -139,6 +190,11 @@ cj(function ($) {
     return html;
   }
   
+  /**
+  * Create configuration table DIV-container and table inside of it.
+  *
+  * @return {string} HTML
+  */
   function createConfigTableContainer() {
     var html = '<div id="customContactRelationshipsTabAdmin_configTableContainer">';
     html += createConfigTable();
@@ -146,6 +202,12 @@ cj(function ($) {
     return html;
   }
   
+  /**
+  * Reloads all config rows from server with ajax. Calls callback parameter function 
+  * with result JSON when loading is complete.
+  *
+  * @param {function} callback Callback function for Ajax
+  */
   function reloadConfigAjax(callback) {
     $.ajax({
       dataType: "json",
@@ -154,6 +216,10 @@ cj(function ($) {
     });
   }
   
+  /**
+  * Update config table rows by first loading current situation from server with ajax and then 
+  * recreating table HTML.
+  */
   function updateConfigTable() {
     reloadConfigAjax(function(result) {
       configRows = result;
@@ -162,6 +228,11 @@ cj(function ($) {
     });
   }
   
+  /**
+  * Create configuration table HTML with rows.
+  *
+  * @return {string} HTML
+  */
   function createConfigTable() {
     var html = '<table class="selector row-highlight">';
     
@@ -187,6 +258,13 @@ cj(function ($) {
     return html;
   }
   
+  /**
+  * Create configuration table row HTML.
+  *
+  * @param {int} index Row index. Used to add 'even' and 'odd' classes for rows.
+  * @param {object} configRow Configuration row object displayed in this row.
+  * @return {string} HTML
+  */
   function createConfigTableRow(index, configRow) {
     var customField = customFieldForId[configRow.custom_field_id];
   
@@ -204,6 +282,14 @@ cj(function ($) {
     return html;
   }
   
+  /**
+  * Find configuration row object for relationship type id and custom field id. 
+  * These two fields are primary keys so there are always maximum of one result rows.
+  *
+  * @param {int} relationship_type_id Relationship type id
+  * @param {int} custom_field_id Custom field id
+  * @return {object} Configuration row object. Can be null. 
+  */
   function getConfigRow(relationship_type_id, custom_field_id) {
     var result = null;
     $.each(configRows, function(index, configRow) {
@@ -215,14 +301,22 @@ cj(function ($) {
     return result;
   }
   
+  /**
+  * Called when configuration row edit link is clicked.
+  * Shows edit form and populates form inputs. Saved current edit info to 'currentEdit' variable.
+  *
+  * @param {object} eventObject jQuery click event object
+  */
   function configEditLinkClicked(eventObject) {
     showEditForm();
     
+    //Get clicked row info from link data parameters
     var link = $(eventObject.target);
     var relationship_type_id = link.data().relationship_type_id;
     var custom_field_id = link.data().custom_field_id;
     var configRow = getConfigRow(relationship_type_id, custom_field_id);
     
+    //Save editing info to be used in form save
     currentEdit.old_relationship_type_id = relationship_type_id;
     currentEdit.old_custom_field_id = custom_field_id;
     
@@ -233,11 +327,19 @@ cj(function ($) {
     $('#display_order').val(configRow.display_order);
   }
   
+  /**
+  * Called when configuration row delete link is clicked.
+  * Asks confirmation from user and does ajax call to server to do the deletion.
+  * Updated configuration table after deletion.
+  *
+  * @param {object} eventObject jQuery click event object
+  */
   function configDeleteLinkClicked(eventObject) {
     if(!confirm("Delete row?")) {
       return;
     }
   
+    //Get clicked row info from link data parameters
     var link = $(eventObject.target);
     var data = {
       relationship_type_id: link.data().relationship_type_id,
@@ -253,19 +355,41 @@ cj(function ($) {
     });
   }
   
+  /**
+  * Called when add new configuration row button is clicked.
+  * Shows configuration editing row.
+  *
+  * @param {object} eventObject jQuery click event object
+  */
   function addButtonClicked(eventObject) {
     currentEdit = {};
     showEditForm();
   }
   
+  /**
+  * Called when configuration row form save button is clicked.
+  * Validates and saves row to server.
+  *
+  * @param {object} eventObject jQuery click event object
+  */
   function saveFormButtonClicked(eventObject) {
     saveConfigForm();
   }
   
+  /**
+  * Called when configuration row editing form cancel button is clicked.
+  * Hides editing form.
+  *
+  * @param {object} eventObject jQuery click event object
+  */
   function cancelButtonClicked(eventObject) {
     hideEditForm();
   }
   
+  /**
+  * Shows configuration editing form.
+  * Hides Add button and clears all old validation error messages.
+  */
   function showEditForm() {
     $('#addNewButton').hide();
     $('#customContactRelationshipsTabAdmin_editFormContainer').show();
@@ -274,22 +398,37 @@ cj(function ($) {
     clearServerErrorMessage();
   }
   
+  /**
+  * Hides configuration editing form and shows Add button.
+  */
   function hideEditForm() {
     $('#customContactRelationshipsTabAdmin_editFormContainer').hide();
     $('#addNewButton').show();
   }
   
+  /**
+  * Called when selected relationship type is changed in form select element.
+  * Populates custom group select.
+  */
   function relationshipTypeChanged() {
     var relationshipTypeId = $('#relationship_type_id option:selected').val();
     populateCustomGroupSelect(relationshipTypeId);
     customGroupChanged();
   }
   
+  /**
+  * Called when selected custom group is changed in form select element.
+  * Populates custom field select.
+  */
   function customGroupChanged() {
     var customGroupId = $('#custom_group_id option:selected').val();
     populateCustomFieldSelect(customGroupId);
   }
   
+  /**
+  * Populates Relationship type select element. Creates option elements HTML 
+  * and injects it inside select element.
+  */
   function populateRelationshipTypeSelect() {
     var html = '';
     $.each(relationshipTypeArray, function(index, relationshipType) {
@@ -301,6 +440,13 @@ cj(function ($) {
     $('#relationship_type_id').html(html);
   }
   
+  /**
+  * Populates custom group select element. Creates option elements HTML 
+  * and injects it inside select element. Displayed custom groups belong 
+  * to relationship type given by parameter.
+  *
+  * @param {int} relationshipTypeId Relationship type id.
+  */
   function populateCustomGroupSelect(relationshipTypeId) {
     var html = '';
     if(customGroupsForRelationshipTypeId.hasOwnProperty(relationshipTypeId)) {
@@ -314,6 +460,13 @@ cj(function ($) {
     $('#custom_group_id').html(html);
   }
   
+  /**
+  * Populates custom field select element. Creates option elements HTML 
+  * and injects it inside select element. Displayed custom field belong 
+  * to custom group given by parameter.
+  *
+  * @param {int} customGroupId Custom group id.
+  */
   function populateCustomFieldSelect(customGroupId) {
     var html = '';
     if(customFieldsForCustomGroupId.hasOwnProperty(customGroupId)) {
@@ -327,10 +480,18 @@ cj(function ($) {
     $('#custom_field_id').html(html);
   }
   
+  /**
+  * Save configuration edit form data to server.
+  * Validates that inputs are not empty. Shows validation error if data is invalid for saving.
+  * Saving is done with ajax. Possible error message from server are displayed in form.
+  * Form is closed only if saving was succesfull. Configuration table is reloaded and recrated after 
+  * succesfull saving.
+  */
   function saveConfigForm() {
     clearValidationErrors();
     clearServerErrorMessage();
     
+    //Validate data
     var data = getFormData();
     var hasErrors = false;
     if(isNaN(parseInt(data.relationship_type_id))) {
@@ -369,6 +530,11 @@ cj(function ($) {
     });
   }
   
+  /**
+  * Get all configuration row form input data and also data from 'currentEdit' variable.
+  *
+  * @return {object} Form data
+  */
   function getFormData() {
     return {
       relationship_type_id: $('#relationship_type_id').val(),
@@ -380,14 +546,28 @@ cj(function ($) {
     };
   }
   
+  /**
+  * Show form save error message from server in form.
+  *
+  * @param {string} message Error message
+  */
   function showServerErrorMessage(message) {
     $('#customContactRelationshipsTabAdmin_editFormContainer .crm-submit-buttons').append('<label class="crm-inline-error">' + message + '</label>');
   }
   
+  /**
+  * Removes possible server error message from edit form.
+  */
   function clearServerErrorMessage() {
     $('#customContactRelationshipsTabAdmin_editFormContainer .crm-submit-buttons .crm-inline-error').remove();
   }
   
+  /**
+  * Show form save validation error message in form bu highlighting field and adding erro message next to it.
+  *
+  * @param {string} fieldId Field id for element with invalid data
+  * @param {string} message Error message
+  */
   function showValidationError(fieldId, message) {
     var field = $('#'+fieldId);
     var messageLabelHtml = '<label class="crm-inline-error">' + message + '</label>';
@@ -396,6 +576,9 @@ cj(function ($) {
     field.addClass('error crm-inline-error');
   }
   
+  /**
+  * Removes all form validation errors.
+  */
   function clearValidationErrors() {
     clearValidationError('relationship_type_id');
     clearValidationError('custom_group_id');
@@ -403,11 +586,17 @@ cj(function ($) {
     clearValidationError('display_order');
   }
   
+  /**
+  * Removes field validation error for field.
+  *
+  * @param {string} fieldId Field id for element with error message
+  */
   function clearValidationError(fieldId) {
     var field = $('#'+fieldId);
     field.parent().find('label.crm-inline-error').remove();
     field.removeClass('error crm-inline-error');
   }
   
+  //Start logic
   init();
 });
