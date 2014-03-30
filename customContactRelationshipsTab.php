@@ -66,7 +66,7 @@ function customContactRelationshipsTab_civicrm_config(&$config) {
   $template =& CRM_Core_Smarty::singleton();
   $extensionDir = dirname(__FILE__);
  
-  // Add our template directory to the Smarty templates path
+  // Add extension template directory to the Smarty templates path
   if (is_array($template->template_dir)) {
     array_unshift($template->template_dir, $extensionDir);
   }
@@ -86,6 +86,7 @@ function customContactRelationshipsTab_civicrm_config(&$config) {
 * You can also override menu items defined by CiviCRM Core.
 */
 function customContactRelationshipsTab_civicrm_xmlMenu( &$files ) {
+  //Add Ajax and Admin page URLs to civicrm_menu table so that they work
   $files[] = dirname(__FILE__)."/menu.xml";
 }
 
@@ -94,11 +95,12 @@ function customContactRelationshipsTab_civicrm_xmlMenu( &$files ) {
 *
 * @param array $params the navigation menu array
 */
-function customContactRelationshipsTab_civicrm_navigationMenu( &$params ) {
-    //  Get the maximum key of $params
-    $maxKey = ( max( array_keys($params) ) );
- 
-    $params[$maxKey+1] = array (
+function customContactRelationshipsTab_civicrm_navigationMenu(&$params) {
+    //Find last index of Administer menu children
+    $maxKey = max(array_keys($params[108]['child']));
+    
+    //Add extension menu as Admin menu last children
+    $params[108]['child'][$maxKey+1] = array(
        'attributes' => array (
           'label'      => 'CustomContactRelationshipsTab',
           'name'       => 'CustomContactRelationshipsTab',
@@ -109,7 +111,7 @@ function customContactRelationshipsTab_civicrm_navigationMenu( &$params ) {
           'parentID'   => null,
           'navID'      => $maxKey+1,
           'active'     => 1
-          ),
+        ),
        'child' =>  array (
           '1' => array (
             'attributes' => array (
@@ -124,5 +126,7 @@ function customContactRelationshipsTab_civicrm_navigationMenu( &$params ) {
                'active'     => 1
                 ),
             'child' => null
-            ) ) );
+          )
+        )
+    );
 }
