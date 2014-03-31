@@ -279,7 +279,7 @@ function CustomContactRelationshipsTabUtil() {
     }
     
     var relationshipCustomValues = customValuesForRelationshipType[relationshipKey];
-    var value = relationshipCustomValues[customFieldConfig.custom_field_id];
+    var value = relationshipCustomValues['customFieldId_'+customFieldConfig.custom_field_id];
     
     if(customFieldConfig.custom_field_data_type == 'Boolean') {
       value = value == '1' ? 'True' : 'False';

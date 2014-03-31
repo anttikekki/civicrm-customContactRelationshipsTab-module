@@ -126,15 +126,7 @@ class CustomContactRelationshipsTabUtil {
     $customGroups = static::getCustomGroupsForRelationshipTypes();
     $customFields = static::getCustomFieldsForCustomGroups($customGroups);
     
-    $result = array();
-    foreach ($customGroups as $index => &$customGroup) {
-      $customGroupId = (int) $customGroup["id"];
-      $relationshipTypeId = $customGroup["relationship_type_id"];
-      $key = "relationshipTypeId_$relationshipTypeId";
-      $result[$key] = static::getCustomFieldsValuesForCustomGroup($customGroup, $customFields[$customGroupId], $relationshipIds);
-    }
-    
-    return $result;
+    return static::getCustomFieldsValuesForCustomGroups($customGroups, $customFields, $relationshipIds);
   }
   
   /**
@@ -210,11 +202,52 @@ class CustomContactRelationshipsTabUtil {
   }
   
   /**
+  * Find all custom fields values for custom groups.
+  *
+  * @param array $customGroups Custom groups array of arrays with following fields: id, title, relationship_type_id, table_name
+  * @param array $customGroupFields Array of Custom fields info arrays with following field: id, custom_group_id, label, data_type, column_name
+  * @param array $relationshipIds Relationship ids whos custom field values are queried
+  * @return array Array where key is relationship id in form 'relationshipId_XX'. Value is array with 'relationship_id' key and all custom field values with key of 'custoFieldId_XX'.
+  */
+  public static function getCustomFieldsValuesForCustomGroups($customGroups, $customFields, $relationshipIds) {
+    $result = array();
+    foreach ($customGroups as $index => &$customGroup) {
+      $customGroupId = (int) $customGroup["id"];
+      $relationshipTypeId = $customGroup["relationship_type_id"];
+      $relationshipTypeIdKey = "relationshipTypeId_$relationshipTypeId";
+      
+      $customFieldValuesForRelationshipId = static::getCustomFieldsValuesForCustomGroup($customGroup, $customFields[$customGroupId], $relationshipIds);
+      
+      if(array_key_exists($relationshipTypeIdKey, $result)) {
+        /*
+        * There are allready result for this relationshiptype. Merge results.
+        */
+        foreach($relationshipIds as $relationshipId) {
+          $relationshipIdKey = "relationshipId_".$relationshipId;
+          
+          if(array_key_exists($relationshipIdKey, $customFieldValuesForRelationshipId)) {
+            if(!array_key_exists($relationshipIdKey, $result[$relationshipTypeIdKey])) {
+              $result[$relationshipTypeIdKey][$relationshipIdKey] = array();
+            }
+            $result[$relationshipTypeIdKey][$relationshipIdKey] = array_merge($customFieldValuesForRelationshipId[$relationshipIdKey], $result[$relationshipTypeIdKey][$relationshipIdKey]);
+          }
+        }
+      }
+      else {
+        $result[$relationshipTypeIdKey] = $customFieldValuesForRelationshipId;
+      }
+    }
+    
+    return $result;
+  }
+  
+  /**
   * Find all custom fields values for custom group.
   *
   * @param array $customGroup Custom group info array with following fields: id, title, relationship_type_id, table_name
   * @param array $customGroupFields Array of Custom fields info arrays with following field: id, custom_group_id, label, data_type, column_name
-  * @return array Array where key is relationship id in form 'relationshipId_XX'. Value is array with 'relationship_id' key and all custom field values with key of custom field id.
+  * @param array $relationshipIds Relationship ids whos custom field values are queried
+  * @return array Array where key is relationship id in form 'relationshipId_XX'. Value is array with 'relationship_id' key and all custom field values with key of 'custoFieldId_XX'.
   */
   public static function getCustomFieldsValuesForCustomGroup($customGroup, $customGroupFields, $relationshipIds) {
     $selectColumns = static::getCustomFieldTableSelectColumns($customGroupFields);
@@ -237,8 +270,7 @@ class CustomContactRelationshipsTabUtil {
       $row = array();
       $row["relationship_id"] = $dao->entity_id;
       foreach ($selectColumns as $index => $selectColumn) {
-        $customFieldId = $customFieldIdForColumnNameMap[$selectColumn];
-        $row[$customFieldId] = $dao->{$selectColumn};
+        $row["customFieldId_".$customFieldIdForColumnNameMap[$selectColumn]] = $dao->{$selectColumn};
       }
       $result["relationshipId_".$dao->entity_id] = $row;
     }
