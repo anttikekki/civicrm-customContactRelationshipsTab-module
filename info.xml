@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <extension key="com.github.anttikekki.customContactRelationshipsTab" type="module">
-  <downloadUrl>https://github.com/anttikekki/civicrm-customContactRelationshipsTab-module/archive/1.1.zip</downloadUrl>
+  <downloadUrl>https://github.com/anttikekki/civicrm-customContactRelationshipsTab-module/archive/1.2.zip</downloadUrl>
   <file>customContactRelationshipsTab</file>
   <name>Custom Contact Relationships Tab</name>
   <description>Alters Contact Relationships by showing different types of relationships in different tables and displaying different custom field info for every relationship</description>
@@ -15,8 +15,8 @@
     <author>Antti Kekki</author>
     <email>anttikekki@gmail.com</email>
   </maintainer>
-  <releaseDate>2014-03-30</releaseDate>
-  <version>1.1</version>
+  <releaseDate>2014-03-31</releaseDate>
+  <version>1.2</version>
   <develStage>stable</develStage>
   <compatibility>
     <ver>4.4</ver>
