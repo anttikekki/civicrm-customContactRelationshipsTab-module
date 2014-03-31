@@ -267,12 +267,14 @@ cj(function ($) {
   */
   function createConfigTableRow(index, configRow) {
     var customField = customFieldForId[configRow.custom_field_id];
+    var customGroup = customField ? customGroupForId[customField.custom_group_id] : null;
+    var customGroupName = (customField ? (customGroup ? customGroup.title : '[Custom group is deleted]') : '[Custom field is deleted]')
   
     var rowClass = index % 2 === 0 ? 'even-row' : 'odd-row';
     var html = '<tr class="' + rowClass + '">';
     html += ' <td>' + relationshipTypeNameForId[configRow.relationship_type_id] + '</td>';
-    html += ' <td>' + customGroupForId[customField.custom_group_id].title + '</td>';
-    html += ' <td>' + customField.label + '</td>';
+    html += ' <td>' + customGroupName + '</td>';
+    html += ' <td>' + (customField ? customField.label : '[Custom field is deleted]') + '</td>';
     html += ' <td>' + configRow.display_order + '</td>';
     html += ' <td class="nowrap">';
     html += '  <a class="edit_link" href="#" data-relationship_type_id="' + configRow.relationship_type_id + '" data-custom_field_id="' + configRow.custom_field_id + '">Edit</a>';
