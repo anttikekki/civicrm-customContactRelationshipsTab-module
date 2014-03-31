@@ -39,6 +39,11 @@ function customContactRelationshipsTab_civicrm_alterTemplateFile($formName, &$fo
     * directy. We need to inject JavaScript to main Summary page and listen tab change to init our own logic.
     */
     CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.customContactRelationshipsTab', 'customContactRelationshipsTab.js');
+    
+    //Add CMS neutral ajax callback URL
+    $contactId = (int) $form->getTemplate()->get_template_vars("contactId");
+    $ajaxURL = CRM_Utils_System::url('civicrm/customContactRelationshipsTab/ajax', 'contactId='.$contactId);
+    CRM_Core_Resources::singleton()->addSetting(array('customContactRelationshipsTab' => array('ajaxURL' => $ajaxURL)));
   }
   //Contact Relationship tab and Relationship edit & view
   else if($form instanceof CRM_Contact_Page_View_Relationship) {
@@ -53,7 +58,18 @@ function customContactRelationshipsTab_civicrm_alterTemplateFile($formName, &$fo
   }
   //Extension admin page
   else if($form instanceof Admin_Page_CustomContactRelationshipsTabAdmin) {
-    CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.customContactRelationshipsTab', 'Admin/Page/admin.js');
+    $res = CRM_Core_Resources::singleton();
+    $res->addScriptFile('com.github.anttikekki.customContactRelationshipsTab', 'Admin/Page/admin.js');
+    
+    //Add CMS neutral ajax callback URLs
+    $res->addSetting(array('customContactRelationshipsTab' => 
+      array(
+        'getInitDataAjaxURL' =>  CRM_Utils_System::url('civicrm/customContactRelationshipsTab/settings/ajax/getInitData'),
+        'getConfigAjaxURL' =>  CRM_Utils_System::url('civicrm/customContactRelationshipsTab/settings/ajax/getConfig'),
+        'saveConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/customContactRelationshipsTab/settings/ajax/saveConfigRow'),
+        'deleteConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/customContactRelationshipsTab/settings/ajax/deleteConfigRow')
+      )
+    ));
   }
 }
 

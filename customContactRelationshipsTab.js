@@ -38,19 +38,6 @@ function CustomContactRelationshipsTabUtil() {
   this.extensionData = null;
   
   /**
-  * Get parameter value from given URL.
-  *
-  * @param {string} parm Parameter that is searched from url.
-  * @return {string} Parameter value. Null if value is not found.
-  */
-  this.getParameterFromURL = function(parm) {
-    //Code from http://stackoverflow.com/a/10625052
-    var re = new RegExp("[?&]" + parm + "=([^&]+)(&|$)");
-    var match = document.URL.replace(/&amp;/g, '&').match(re);
-    return(match ? match[1] : null);
-  }
-
-  /**
   * Start table modification. Creates new datatables.
   */
   this.start = function() {
@@ -68,8 +55,7 @@ function CustomContactRelationshipsTabUtil() {
   */
   this.loadExtensionData = function() {
     var util = this;
-    var contactId = this.getParameterFromURL('cid');
-    cj.get( "index.php?q=civicrm/customContactRelationshipsTab/ajax&contactId="+contactId, function( data ) {
+    cj.get(CRM.customContactRelationshipsTab.ajaxURL.replace(/&amp;/g, '&'), function( data ) {
       util.extensionData = JSON.parse(data);
       util.start();
     });

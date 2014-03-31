@@ -41,7 +41,7 @@ cj(function ($) {
   function startInitDataAjaxLoading() {
     $.ajax({
       dataType: "json",
-      url: 'index.php?q=civicrm/customContactRelationshipsTab/settings/ajax/getInitData',
+      url: CRM.customContactRelationshipsTab.getInitDataAjaxURL,
       success: initDataLoadComplete
     });
   }
@@ -211,7 +211,7 @@ cj(function ($) {
   function reloadConfigAjax(callback) {
     $.ajax({
       dataType: "json",
-      url: 'index.php?q=civicrm/customContactRelationshipsTab/settings/ajax/getConfig',
+      url: CRM.customContactRelationshipsTab.getConfigAjaxURL,
       success: callback 
     });
   }
@@ -349,7 +349,7 @@ cj(function ($) {
     };
   
     $.ajax({
-      url: 'index.php?q=civicrm/customContactRelationshipsTab/settings/ajax/deleteConfigRow',
+      url: CRM.customContactRelationshipsTab.deleteConfigRowAjaxURL,
       data: data,
       success: function() {
         updateConfigTable();
@@ -518,7 +518,7 @@ cj(function ($) {
     }
   
     $.ajax({
-      url: 'index.php?q=civicrm/customContactRelationshipsTab/settings/ajax/saveConfigRow',
+      url: CRM.customContactRelationshipsTab.saveConfigRowAjaxURL,
       data: data,
       success: function(result) {
         if(result != 'ok') {
