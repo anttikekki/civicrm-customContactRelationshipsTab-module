@@ -6,6 +6,20 @@
 class CustomContactRelationshipsTabUtil {
   
   /**
+  * Add extension JavaScript file and parameters.
+  *
+  * @param CRM_Core_Page $form CRM_Contact_Page_View_Summary or CRM_Contact_Page_View_Relationship
+  */
+  public static function addExtensionJavaScript(&$form) {
+    CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.customContactRelationshipsTab', 'customContactRelationshipsTab.js');
+    
+    //Add CMS neutral extension ajax callback URL
+    $contactId = (int) $form->getTemplate()->get_template_vars("contactId");
+    $ajaxURL = CRM_Utils_System::url('civicrm/customContactRelationshipsTab/ajax', 'contactId='.$contactId);
+    CRM_Core_Resources::singleton()->addSetting(array('customContactRelationshipsTab' => array('ajaxURL' => $ajaxURL)));
+  }
+  
+  /**
   * Find all relationship ids for contact id.
   *
   * @param int|string $contactId Contact id

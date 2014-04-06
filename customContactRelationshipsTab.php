@@ -7,6 +7,8 @@
 * Every table shows custom field data spesific to that Relationship type.
 */
 
+require_once "CustomContactRelationshipsTabUtil.php";
+
 /**
 * Implements CiviCRM 'install' hook.
 */
@@ -38,12 +40,7 @@ function customContactRelationshipsTab_civicrm_alterTemplateFile($formName, &$fo
     * In Contact summary page CRM_Contact_Page_View_Relationship is loaded with AJAX so CRM_Core_Resources does not work 
     * directy. We need to inject JavaScript to main Summary page and listen tab change to init our own logic.
     */
-    CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.customContactRelationshipsTab', 'customContactRelationshipsTab.js');
-    
-    //Add CMS neutral ajax callback URL
-    $contactId = (int) $form->getTemplate()->get_template_vars("contactId");
-    $ajaxURL = CRM_Utils_System::url('civicrm/customContactRelationshipsTab/ajax', 'contactId='.$contactId);
-    CRM_Core_Resources::singleton()->addSetting(array('customContactRelationshipsTab' => array('ajaxURL' => $ajaxURL)));
+    CustomContactRelationshipsTabUtil::addExtensionJavaScript($form);
   }
   //Contact Relationship tab and Relationship edit & view
   else if($form instanceof CRM_Contact_Page_View_Relationship) {
@@ -53,7 +50,7 @@ function customContactRelationshipsTab_civicrm_alterTemplateFile($formName, &$fo
     */
     $action = $form->getTemplate()->get_template_vars("action");
     if($action == CRM_Core_Action::VIEW || $action == CRM_Core_Action::UPDATE) {
-      CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.customContactRelationshipsTab', 'customContactRelationshipsTab.js');
+      CustomContactRelationshipsTabUtil::addExtensionJavaScript($form);
     }
   }
   //Extension admin page
