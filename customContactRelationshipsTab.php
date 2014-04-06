@@ -49,7 +49,7 @@ function customContactRelationshipsTab_civicrm_alterTemplateFile($formName, &$fo
     * works so JavaScript can be injected directly.
     */
     $action = $form->getTemplate()->get_template_vars("action");
-    if($action == CRM_Core_Action::VIEW || $action == CRM_Core_Action::UPDATE) {
+    if($action == CRM_Core_Action::VIEW || $action == CRM_Core_Action::UPDATE || $action == CRM_Core_Action::ADD) {
       CustomContactRelationshipsTabUtil::addExtensionJavaScript($form);
     }
   }
