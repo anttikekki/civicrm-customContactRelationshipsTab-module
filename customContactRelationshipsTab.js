@@ -288,7 +288,20 @@ function CustomContactRelationshipsTabUtil() {
     html += '</div>';
     html += '</div>';
     
-    cj('#current-relationships').parent().append('<div class="spacer"></div>').append(html);
+    var container;
+    if(cj('#current-relationships').length > 0) {
+      container = cj('#current-relationships').parent();
+    }
+    else if(cj('#inactive-relationships').length > 0) {
+      container = cj('#inactive-relationships').parent();
+    }
+    else {
+      return;
+    }
+    
+    container.append('<div class="spacer"></div>').append(html);
+    
+    //Init datatable jQuery plugin
     cj('#datatable_relationshipTypeId_' + relationshipTypeId).dataTable({
         "bPaginate": false,
         "bFilter": false,
